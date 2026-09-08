@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/update_service.dart';
 import '../../state/organizer_controller.dart';
 import '../theme.dart';
 
@@ -59,7 +60,11 @@ class SettingsDialog extends StatelessWidget {
               ],
             ),
           ),
+          // Le lien vers le projet tient a gauche, loin du bouton qui
+          // ferme : ce n'est pas une action de sortie.
+          actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
+            const _GithubLink(),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Fermer'),
@@ -110,6 +115,44 @@ class _SwitchRow extends StatelessWidget {
           const SizedBox(width: 16),
           Switch(value: value, onChanged: onChanged),
         ],
+      ),
+    );
+  }
+}
+
+/// Opens the project page. The mark is white, so it takes the tint given
+/// here and follows the interface rather than punching a hole in it.
+class _GithubLink extends StatefulWidget {
+  const _GithubLink();
+
+  @override
+  State<_GithubLink> createState() => _GithubLinkState();
+}
+
+class _GithubLinkState extends State<_GithubLink> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Voir le projet sur GitHub',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          onTap: () => openInBrowser(projectPage),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Image.asset(
+              'assets/github.png',
+              width: 22,
+              height: 22,
+              color: _hovered ? AppColors.textPrimary : AppColors.textSecondary,
+              filterQuality: FilterQuality.medium,
+            ),
+          ),
+        ),
       ),
     );
   }

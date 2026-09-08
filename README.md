@@ -64,7 +64,11 @@ réduit d'autant le travail fait à chaque appui.
 - **Barre de statut** : nombre de raccourcis enregistrés, raccourcis refusés
   par Windows, dernière activation.
 - **Paramètres** : réduction dans la zone de notification à la fermeture,
-  démarrage réduit, lancement au démarrage de Windows.
+  démarrage réduit, lancement au démarrage de Windows, et un lien vers le
+  projet.
+
+La version en cours s'affiche dans l'en-tête, à côté du nom ; construite
+depuis les sources elle vaut `dev`.
 
 La fenêtre se réduit dans la zone de notification. Le menu contextuel de
 l'icône propose « Ouvrir le menu » et « Fermer ». Une seule instance peut

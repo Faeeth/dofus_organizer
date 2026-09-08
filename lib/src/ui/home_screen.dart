@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app_version.dart';
 import '../models/game_character.dart';
 import '../state/organizer_controller.dart';
 import '../state/update_controller.dart';
@@ -101,15 +102,30 @@ class _Header extends StatelessWidget {
             filterQuality: FilterQuality.medium,
           ),
           const SizedBox(width: 12),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Dofus Organizer',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  const Text(
+                    'Dofus Organizer',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    appVersion,
+                    style: const TextStyle(
+                      color: AppColors.textDisabled,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 2),
-              Text(
+              const SizedBox(height: 2),
+              const Text(
                 'Un raccourci par personnage, une équipe active à la fois',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
               ),

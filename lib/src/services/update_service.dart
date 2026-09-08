@@ -20,6 +20,9 @@ const String _releasesApi =
 const String releasesPage =
     'https://github.com/Faeeth/dofus_organizer/releases/latest';
 
+/// The project itself, linked from the settings.
+const String projectPage = 'https://github.com/Faeeth/dofus_organizer';
+
 /// Past this, give up: startup must not wait on GitHub.
 const Duration _timeout = Duration(seconds: 4);
 
