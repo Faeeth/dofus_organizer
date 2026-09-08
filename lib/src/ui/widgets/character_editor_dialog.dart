@@ -176,7 +176,8 @@ class _CharacterEditorDialogState extends State<CharacterEditorDialog> {
               decoration: const InputDecoration(
                 labelText: 'Fragment du titre de la fenêtre',
                 helperText:
-                    'Recherché sans tenir compte de la casse, comme dans le script AutoHotkey.',
+                    'Recherché dans le titre des fenêtres, sans tenir compte '
+                    'de la casse.',
                 helperMaxLines: 2,
               ),
               onChanged: (value) {

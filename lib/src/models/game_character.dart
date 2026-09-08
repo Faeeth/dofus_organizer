@@ -20,8 +20,7 @@ class GameCharacter {
   /// Display name, free form.
   final String name;
 
-  /// Substring searched in the window titles. Matching is case insensitive,
-  /// mirroring the AutoHotkey `SetTitleMatchMode(2)` behaviour.
+  /// Substring searched in the window titles. Matching is case insensitive.
   final String windowTitle;
 
   final Shortcut? shortcut;

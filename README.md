@@ -6,9 +6,6 @@ plan. Les personnages sont regroupés en équipes que l'on active ou désactive
 d'un clic, ce qui permet à plusieurs équipes de partager les mêmes touches
 sans se marcher dessus.
 
-Remplace le script AutoHotkey d'origine (`old_dofus_organizer.ahk`, conservé
-comme référence fonctionnelle).
-
 ## Fonctionnement
 
 Le chemin critique — appui sur la touche jusqu'à l'activation de la fenêtre —
@@ -51,9 +48,8 @@ premier plan.
 ## Correspondance des titres
 
 Le fragment saisi est recherché dans le titre des fenêtres, sans tenir compte
-de la casse — le comportement de `SetTitleMatchMode(2)` en AutoHotkey. Les
-fenêtres invisibles, sans titre, masquées par DWM ou appartenant au tool
-lui-même sont ignorées. Le bouton **Tester** de l'éditeur de personnage
+de la casse. Les fenêtres invisibles, sans titre, masquées par DWM ou
+appartenant au tool lui-même sont ignorées. Le bouton **Tester** de l'éditeur de personnage
 active la fenêtre correspondante sans passer par le raccourci.
 
 ## Raccourcis
@@ -67,10 +63,9 @@ libellé affiché est celui de la touche telle qu'elle a été pressée.
 
 C'est ensuite Windows qui arbitre : `RegisterHotKey` refuse les touches déjà
 réservées par le système ou détenues par une autre application. **F12 seul est
-réservé par le débogueur Windows** et ne peut pas être enregistré,
-contrairement au script AutoHotkey d'origine qui passait par un hook clavier
-bas niveau ; `Ctrl + F12` en revanche fonctionne, comme toute combinaison de
-F12 avec un modificateur. Les raccourcis refusés sont signalés en rouge dans
+réservé par le débogueur Windows** et ne peut pas être enregistré ;
+`Ctrl + F12` en revanche fonctionne, comme toute combinaison de F12 avec un
+modificateur. Les raccourcis refusés sont signalés en rouge dans
 l'interface : ajouter un modificateur suffit le plus souvent.
 
 ## Configuration
