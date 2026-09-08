@@ -14,6 +14,7 @@ constexpr char kMethodApply[] = "hotkeys.apply";
 constexpr char kMethodSetSuspended[] = "hotkeys.setSuspended";
 constexpr char kMethodFocus[] = "window.focus";
 constexpr char kMethodStartedHidden[] = "app.startedHidden";
+constexpr char kMethodStartHidden[] = "window.setStartHidden";
 constexpr char kMethodStartupGet[] = "startup.isEnabled";
 constexpr char kMethodStartupSet[] = "startup.setEnabled";
 constexpr char kEventHotkey[] = "onHotkey";
@@ -158,6 +159,19 @@ void NativeBridge::HandleMethodCall(
     int index = focus.ActivateFirstMatch(
         {NormalizeTitleNeedle(Utf16FromUtf8(*title))});
     result->Success(EncodableValue(index >= 0));
+    return;
+  }
+
+  if (call.method_name() == kMethodStartHidden) {
+    const auto* hidden = std::get_if<bool>(call.arguments());
+    if (hidden == nullptr) {
+      result->Error("bad_arguments", "Expected a boolean");
+      return;
+    }
+    if (initial_visibility_handler_) {
+      initial_visibility_handler_(!*hidden);
+    }
+    result->Success();
     return;
   }
 

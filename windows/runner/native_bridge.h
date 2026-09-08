@@ -5,6 +5,7 @@
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 
+#include <functional>
 #include <memory>
 
 #include "hotkey_service.h"
@@ -23,6 +24,13 @@ class NativeBridge {
   explicit NativeBridge(bool started_hidden);
   ~NativeBridge();
 
+  // Called when Dart decides, before the first frame, whether the window
+  // should appear at all. Lets the preference reach the runner in time
+  // instead of racing the first show.
+  void set_initial_visibility_handler(std::function<void(bool)> handler) {
+    initial_visibility_handler_ = std::move(handler);
+  }
+
   NativeBridge(const NativeBridge&) = delete;
   NativeBridge& operator=(const NativeBridge&) = delete;
 
@@ -40,6 +48,7 @@ class NativeBridge {
 
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
   std::unique_ptr<HotkeyService> hotkeys_;
+  std::function<void(bool)> initial_visibility_handler_;
   bool started_hidden_ = false;
 };
 

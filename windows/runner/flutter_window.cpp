@@ -2,6 +2,14 @@
 
 #include <optional>
 
+namespace {
+
+// Smallest usable size, in logical pixels, scaled to the window DPI.
+constexpr LONG kMinimumWidth = 720;
+constexpr LONG kMinimumHeight = 520;
+
+}  // namespace
+
 #include "flutter/generated_plugin_registrant.h"
 #include "single_instance.h"
 
@@ -30,13 +38,17 @@ bool FlutterWindow::OnCreate() {
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   bridge_ = std::make_unique<dofus::NativeBridge>(start_hidden_);
+  bridge_->set_initial_visibility_handler(
+      [this](bool visible) { start_hidden_ = !visible; });
   bridge_->Initialize(flutter_controller_->engine()->messenger());
 
-  if (!start_hidden_) {
-    flutter_controller_->engine()->SetNextFrameCallback([&]() {
+  // The first frame only happens after Dart applied its preference, so the
+  // decision is settled by the time this runs.
+  flutter_controller_->engine()->SetNextFrameCallback([&]() {
+    if (!start_hidden_) {
       this->Show();
-    });
-  }
+    }
+  });
 
   // Flutter can complete the first frame before the "show window" callback is
   // registered. The following call ensures a frame is pending to ensure the
@@ -63,6 +75,14 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   // Handled before Flutter so that no plugin can swallow the broadcast.
   if (message == dofus::ShowWindowMessageId() && bridge_) {
     bridge_->NotifySecondInstance();
+    return 0;
+  }
+
+  if (message == WM_GETMINMAXINFO) {
+    const double scale = ::GetDpiForWindow(hwnd) / 96.0;
+    auto* bounds = reinterpret_cast<MINMAXINFO*>(lparam);
+    bounds->ptMinTrackSize.x = static_cast<LONG>(kMinimumWidth * scale);
+    bounds->ptMinTrackSize.y = static_cast<LONG>(kMinimumHeight * scale);
     return 0;
   }
 

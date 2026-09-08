@@ -9,6 +9,33 @@
 #include "startup_registration.h"
 #include "utils.h"
 
+namespace {
+
+// Centers |window| on the work area of the monitor hosting it, so the window
+// does not open under the taskbar or across two screens.
+void CenterOnWorkArea(HWND window) {
+  RECT frame;
+  if (window == nullptr || !::GetWindowRect(window, &frame)) {
+    return;
+  }
+  MONITORINFO monitor = {};
+  monitor.cbSize = sizeof(monitor);
+  if (!::GetMonitorInfoW(::MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST),
+                         &monitor)) {
+    return;
+  }
+  const LONG width = frame.right - frame.left;
+  const LONG height = frame.bottom - frame.top;
+  const LONG x =
+      monitor.rcWork.left + (monitor.rcWork.right - monitor.rcWork.left - width) / 2;
+  const LONG y =
+      monitor.rcWork.top + (monitor.rcWork.bottom - monitor.rcWork.top - height) / 2;
+  ::SetWindowPos(window, nullptr, x, y, 0, 0,
+                 SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+}
+
+}  // namespace
+
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
   // Only one organizer may own the global shortcuts: hand the focus back to
@@ -41,12 +68,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
+  // The window geometry is owned by the runner: the Dart side would have to
+  // convert it through a device pixel ratio that is not available yet before
+  // the first frame.
   FlutterWindow window(project, start_hidden);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1100, 720);
   if (!window.Create(L"Dofus Organizer", origin, size)) {
     return EXIT_FAILURE;
   }
+  CenterOnWorkArea(window.GetHandle());
+  // Windows replaces the command of the first ShowWindow call of a process by
+  // the one inherited from the launcher startup info: a shortcut configured to
+  // start minimized would otherwise turn the first frame into a minimized
+  // window. Consuming that call here keeps the later show faithful; the window
+  // is not visible yet, so this changes nothing on screen.
+  ::ShowWindow(window.GetHandle(), SW_HIDE);
   // Dart intercepts the close request to hide the window instead; reaching
   // WM_DESTROY therefore means an explicit quit.
   window.SetQuitOnClose(true);

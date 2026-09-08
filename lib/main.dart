@@ -22,26 +22,18 @@ Future<void> main() async {
   final startHidden =
       await native.startedHidden() || controller.settings.startMinimized;
 
-  await windowManager.waitUntilReadyToShow(
-    const WindowOptions(
-      size: Size(1100, 720),
-      minimumSize: Size(720, 520),
-      center: true,
-      title: 'Dofus Organizer',
-      backgroundColor: Color(0xFF0E1014),
-    ),
-    () async {
-      // Closing is always intercepted; whether it hides or quits is decided in
-      // the app shell from the current preference.
-      await windowManager.setPreventClose(true);
-      if (startHidden) {
-        await windowManager.hide();
-      } else {
-        await windowManager.show();
-        await windowManager.focus();
-      }
-    },
-  );
+  // The runner owns the first show: hiding the window from here instead would
+  // race the show it performs on the first frame.
+  await native.setStartHidden(hidden: startHidden);
+
+  // No WindowOptions: size, minimum size and centering are handled by the
+  // runner too. The plugin would convert them with the view device pixel
+  // ratio, which is not available yet at this point and collapses the window.
+  await windowManager.waitUntilReadyToShow(null, () async {
+    // Closing is always intercepted; whether it hides or quits is decided in
+    // the app shell from the current preference.
+    await windowManager.setPreventClose(true);
+  });
 
   runApp(OrganizerApp(controller: controller));
 }

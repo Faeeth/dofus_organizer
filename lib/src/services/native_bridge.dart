@@ -86,6 +86,12 @@ class NativeBridge {
     return found ?? false;
   }
 
+  /// Tells the runner whether the window must stay hidden when the first
+  /// frame is rendered. Must be called before `runApp`.
+  Future<void> setStartHidden({required bool hidden}) {
+    return _channel.invokeMethod<void>('window.setStartHidden', hidden);
+  }
+
   /// Whether the process was launched with the minimized flag.
   Future<bool> startedHidden() async {
     final hidden = await _channel.invokeMethod<bool>('app.startedHidden');
