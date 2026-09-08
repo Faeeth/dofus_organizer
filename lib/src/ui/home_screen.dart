@@ -73,8 +73,8 @@ class _Header extends StatelessWidget {
         children: [
           Image.asset(
             'assets/icon.png',
-            width: 30,
-            height: 30,
+            width: 40,
+            height: 40,
             filterQuality: FilterQuality.medium,
           ),
           const SizedBox(width: 12),

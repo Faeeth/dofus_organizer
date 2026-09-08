@@ -133,7 +133,7 @@ windows/runner/        couche Win32
   native_bridge.*        canal de méthodes vers Dart
   single_instance.*      mutex nommé et réveil de l'instance existante
   startup_registration.* entrée Run de l'utilisateur courant
-tool/generate_icons.py génération des icônes
+tool/generate_icons.py icônes dérivées de assets/logo.png
 ```
 
 Le canal `dofus_organizer/native` expose `hotkeys.apply`,
