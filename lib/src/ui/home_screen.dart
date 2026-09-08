@@ -71,8 +71,12 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
       child: Row(
         children: [
-          const Icon(Icons.grid_view_rounded,
-              size: 20, color: AppColors.accent),
+          Image.asset(
+            'assets/icon.png',
+            width: 30,
+            height: 30,
+            filterQuality: FilterQuality.medium,
+          ),
           const SizedBox(width: 12),
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,9 +206,12 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.groups_2_outlined,
-              size: 44, color: AppColors.textDisabled),
-          const SizedBox(height: 16),
+          Image.asset(
+            'assets/logo.png',
+            height: 132,
+            filterQuality: FilterQuality.medium,
+          ),
+          const SizedBox(height: 12),
           const Text(
             'Aucune équipe',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
