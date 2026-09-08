@@ -10,13 +10,6 @@ import '../models/shortcut.dart';
 import '../services/config_store.dart';
 import '../services/native_bridge.dart';
 
-/// Identifiers of the shortcuts that drive the application itself instead of
-/// activating a game window.
-abstract final class AppCommand {
-  static const String quit = 'app:quit';
-  static const String showWindow = 'app:show';
-}
-
 /// Result of the last activation, used to give feedback in the interface.
 @immutable
 class TriggerFeedback {
@@ -48,9 +41,6 @@ class OrganizerController extends ChangeNotifier {
   TriggerFeedback? _lastTrigger;
   bool _recording = false;
 
-  /// Invoked when the quit shortcut fires or the tray asks for a shutdown.
-  Future<void> Function()? onQuitRequested;
-
   /// Invoked when the window must come back to the foreground.
   Future<void> Function()? onShowRequested;
 
@@ -74,14 +64,6 @@ class OrganizerController extends ChangeNotifier {
     return shortcut != null &&
         _rejectedSignatures.contains(shortcut.signature);
   }
-
-  /// Application commands are registered under their own identifier, not under
-  /// a shortcut signature.
-  bool get isQuitShortcutRejected =>
-      _rejectedSignatures.contains(AppCommand.quit);
-
-  bool get isShowWindowShortcutRejected =>
-      _rejectedSignatures.contains(AppCommand.showWindow);
 
   int get rejectedShortcutCount => _rejectedSignatures.length;
 
@@ -149,12 +131,14 @@ class OrganizerController extends ChangeNotifier {
     required String name,
     required String windowTitle,
     Shortcut? shortcut,
+    String? classIcon,
   }) {
     final character = GameCharacter(
       id: _newId(),
       name: name,
       windowTitle: windowTitle,
       shortcut: shortcut,
+      classIcon: classIcon,
     );
     _mapGroup(
       groupId,
@@ -170,6 +154,8 @@ class OrganizerController extends ChangeNotifier {
     String? windowTitle,
     Shortcut? shortcut,
     bool clearShortcut = false,
+    String? classIcon,
+    bool clearClassIcon = false,
     bool? enabled,
   }) {
     _mapCharacter(
@@ -180,6 +166,8 @@ class OrganizerController extends ChangeNotifier {
         windowTitle: windowTitle,
         shortcut: shortcut,
         clearShortcut: clearShortcut,
+        classIcon: classIcon,
+        clearClassIcon: clearClassIcon,
         enabled: enabled,
       ),
     );
@@ -238,24 +226,6 @@ class OrganizerController extends ChangeNotifier {
     ));
   }
 
-  void setQuitShortcut(Shortcut? shortcut) {
-    _update(_config.copyWith(
-      settings: _config.settings.copyWith(
-        quitShortcut: shortcut,
-        clearQuitShortcut: shortcut == null,
-      ),
-    ));
-  }
-
-  void setShowWindowShortcut(Shortcut? shortcut) {
-    _update(_config.copyWith(
-      settings: _config.settings.copyWith(
-        showWindowShortcut: shortcut,
-        clearShowWindowShortcut: shortcut == null,
-      ),
-    ));
-  }
-
   // --- Shortcut recording ------------------------------------------------
 
   /// Releases the global shortcuts while the user presses the keys to record.
@@ -295,14 +265,6 @@ class OrganizerController extends ChangeNotifier {
   // --- Internals ---------------------------------------------------------
 
   void _handleHotkey(String id, int targetIndex) {
-    switch (id) {
-      case AppCommand.quit:
-        unawaited(onQuitRequested?.call() ?? Future<void>.value());
-        return;
-      case AppCommand.showWindow:
-        unawaited(_requestShow());
-        return;
-    }
     final characters = _liveCharactersBySignature()[id] ?? const [];
     final matched = targetIndex >= 0 && targetIndex < characters.length;
     _lastTrigger = TriggerFeedback(
@@ -342,25 +304,6 @@ class OrganizerController extends ChangeNotifier {
         targets: characters.map((c) => c.windowTitle).toList(),
       ));
     });
-
-    final quit = _config.settings.quitShortcut;
-    if (quit != null && quit.isValid) {
-      bindings.add(NativeBinding(
-        id: AppCommand.quit,
-        modifiers: quit.modifiers,
-        keyCode: quit.keyCode,
-        targets: const <String>[],
-      ));
-    }
-    final show = _config.settings.showWindowShortcut;
-    if (show != null && show.isValid) {
-      bindings.add(NativeBinding(
-        id: AppCommand.showWindow,
-        modifiers: show.modifiers,
-        keyCode: show.keyCode,
-        targets: const <String>[],
-      ));
-    }
     return bindings;
   }
 

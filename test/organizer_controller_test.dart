@@ -124,15 +124,6 @@ void main() {
     expect(bridge.lastBindings, isEmpty);
   });
 
-  test('application shortcuts are pushed as target free commands', () async {
-    controller.setQuitShortcut(const Shortcut(keyCode: 0x7B));
-    await settle();
-
-    final quit = bridge.lastBindings.single;
-    expect(quit.id, AppCommand.quit);
-    expect(quit.targets, isEmpty);
-  });
-
   test('a rejected signature marks its characters as conflicting', () async {
     final team = controller.addGroup('Team');
     final character =
@@ -144,6 +135,23 @@ void main() {
     final stored = controller.groups.single.characters.single;
     expect(controller.isConflicting(stored), isTrue);
     expect(controller.activeShortcutCount, 0);
+  });
+
+  test('the class portrait survives a reload', () async {
+    final team = controller.addGroup('Team');
+    controller.addCharacter(team.id,
+        name: 'A', windowTitle: 'A', shortcut: f1, classIcon: 'iop_m');
+    await controller.flush();
+
+    final reloaded = OrganizerController(
+      store: ConfigStore(directory: temporary),
+      native: _RecordingBridge(),
+    );
+    await reloaded.initialize();
+
+    expect(reloaded.groups.single.characters.single.classIcon, 'iop_m');
+    await reloaded.flush();
+    reloaded.dispose();
   });
 
   test('a recorded key label survives a reload', () async {

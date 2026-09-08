@@ -29,9 +29,7 @@ class _OrganizerAppState extends State<OrganizerApp>
     super.initState();
     windowManager.addListener(this);
     trayManager.addListener(this);
-    widget.controller
-      ..onShowRequested = _showWindow
-      ..onQuitRequested = _quit;
+    widget.controller.onShowRequested = _showWindow;
     _initTray();
   }
 

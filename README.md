@@ -39,8 +39,7 @@ réduit d'autant le travail fait à chaque appui.
 - **Barre de statut** : nombre de raccourcis enregistrés, raccourcis refusés
   par Windows, dernière activation.
 - **Paramètres** : réduction dans la zone de notification à la fermeture,
-  démarrage réduit, lancement au démarrage de Windows, raccourci d'affichage
-  de la fenêtre, raccourci de fermeture.
+  démarrage réduit, lancement au démarrage de Windows.
 
 La fenêtre se réduit dans la zone de notification. Le menu contextuel de
 l'icône propose « Ouvrir le menu » et « Fermer ». Une seule instance peut

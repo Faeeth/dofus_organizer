@@ -67,9 +67,7 @@ bool ParseBinding(const EncodableValue& value, HotkeyBinding* binding) {
     }
     binding->needles.push_back(NormalizeTitleNeedle(Utf16FromUtf8(*title)));
   }
-  // An empty target list is valid: application commands (quit, show window)
-  // are registered the same way and only reported back to Dart.
-  return true;
+  return !binding->needles.empty();
 }
 
 }  // namespace

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../models/shortcut.dart';
 import '../../state/organizer_controller.dart';
 import '../theme.dart';
-import 'shortcut_badge.dart';
-import 'shortcut_recorder_dialog.dart';
 
-/// Application preferences and the two global shortcuts driving the organizer
-/// itself.
+/// Application preferences.
 class SettingsDialog extends StatelessWidget {
   const SettingsDialog({super.key, required this.controller});
 
@@ -21,22 +17,6 @@ class SettingsDialog extends StatelessWidget {
       context: context,
       builder: (context) => SettingsDialog(controller: controller),
     );
-  }
-
-  Future<void> _pick(
-    BuildContext context, {
-    required String title,
-    required Shortcut? current,
-    required void Function(Shortcut?) apply,
-  }) async {
-    final result = await ShortcutRecorderDialog.show(
-      context,
-      controller: controller,
-      title: title,
-      initial: current,
-    );
-    if (result == null) return;
-    apply(result.shortcut);
   }
 
   @override
@@ -75,30 +55,6 @@ class SettingsDialog extends StatelessWidget {
                       'courant, en mode réduit.',
                   value: settings.launchAtStartup,
                   onChanged: (value) => controller.setLaunchAtStartup(value),
-                ),
-                const Divider(height: 28),
-                _ShortcutRow(
-                  label: 'Afficher la fenêtre',
-                  shortcut: settings.showWindowShortcut,
-                  conflicting: controller.isShowWindowShortcutRejected,
-                  onTap: () => _pick(
-                    context,
-                    title: 'Raccourci d\'affichage de la fenêtre',
-                    current: settings.showWindowShortcut,
-                    apply: controller.setShowWindowShortcut,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _ShortcutRow(
-                  label: 'Quitter le tool',
-                  shortcut: settings.quitShortcut,
-                  conflicting: controller.isQuitShortcutRejected,
-                  onTap: () => _pick(
-                    context,
-                    title: 'Raccourci de fermeture',
-                    current: settings.quitShortcut,
-                    apply: controller.setQuitShortcut,
-                  ),
                 ),
               ],
             ),
@@ -155,51 +111,6 @@ class _SwitchRow extends StatelessWidget {
           Switch(value: value, onChanged: onChanged),
         ],
       ),
-    );
-  }
-}
-
-class _ShortcutRow extends StatelessWidget {
-  const _ShortcutRow({
-    required this.label,
-    required this.shortcut,
-    required this.conflicting,
-    required this.onTap,
-  });
-
-  final String label;
-  final Shortcut? shortcut;
-  final bool conflicting;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(fontSize: 14)),
-              if (conflicting) ...[
-                const SizedBox(height: 2),
-                const Text(
-                  'Refusé par Windows : la touche est déjà réservée. '
-                  'Ajoutez Ctrl, Alt ou Maj, ou changez de touche.',
-                  style: TextStyle(color: AppColors.danger, fontSize: 11.5),
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(width: 16),
-        ShortcutBadge(
-          shortcut: shortcut,
-          conflicting: conflicting,
-          onTap: onTap,
-        ),
-      ],
     );
   }
 }
