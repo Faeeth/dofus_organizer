@@ -39,6 +39,7 @@ class OrganizerController extends ChangeNotifier {
   OrganizerConfig _config = const OrganizerConfig();
   Set<String> _rejectedSignatures = <String>{};
   TriggerFeedback? _lastTrigger;
+  Future<void>? _pendingSync;
   bool _recording = false;
 
   /// Invoked when the window must come back to the foreground.
@@ -253,8 +254,16 @@ class OrganizerController extends ChangeNotifier {
     return _native.focusWindow(character.windowTitle);
   }
 
+  /// Completes once the binding set pushed by the last mutation reached the
+  /// native side. Mutations are synchronous for the interface, so this is the
+  /// only way to observe the end of the round trip.
+  Future<void> get synchronised => _pendingSync ?? Future<void>.value();
+
   /// Writes any pending configuration to disk, before quitting.
-  Future<void> flush() => _store.flush();
+  Future<void> flush() async {
+    await synchronised;
+    await _store.flush();
+  }
 
   @override
   void dispose() {
@@ -320,7 +329,7 @@ class OrganizerController extends ChangeNotifier {
     _config = config;
     notifyListeners();
     _store.save(config);
-    unawaited(_syncBindings());
+    _pendingSync = _syncBindings();
   }
 
   void _mapGroup(String groupId, CharacterGroup Function(CharacterGroup) map) {

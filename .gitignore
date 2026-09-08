@@ -49,3 +49,6 @@ app.*.map.json
 
 # Windows build artifacts
 windows/flutter/ephemeral/
+
+# Paquets de diffusion
+/dist/

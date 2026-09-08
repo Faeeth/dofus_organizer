@@ -70,7 +70,13 @@ l'interface : ajouter un modificateur suffit le plus souvent.
 
 ## Configuration
 
-`%APPDATA%\DofusOrganizer\config.json`, écrit de façon atomique.
+`%LOCALAPPDATA%\DofusOrganizer\config.json`, écrit de façon atomique.
+
+Local et non itinérant : la configuration nomme les fenêtres de clients
+installés sur cette machine, et suivre l'utilisateur sur une autre y
+emporterait des raccourcis pointant vers des personnages absents. Une
+configuration laissée par une version antérieure dans `%APPDATA%` est déplacée
+au premier lancement.
 
 ```json
 {

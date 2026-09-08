@@ -62,8 +62,8 @@ void main() {
     }
   });
 
-  /// Waits for the asynchronous binding synchronisation triggered by mutations.
-  Future<void> settle() => Future<void>.delayed(Duration.zero);
+  /// Waits for the binding synchronisation triggered by the last mutation.
+  Future<void> settle() => controller.synchronised;
 
   test('only characters of an enabled group are pushed natively', () async {
     final team = controller.addGroup('Team');
@@ -173,6 +173,48 @@ void main() {
     expect(stored.keyLabel, '\$');
     await reloaded.flush();
     reloaded.dispose();
+  });
+
+  test('a configuration left in the roaming profile is migrated', () async {
+    final legacy = await Directory.systemTemp.createTemp('dofus_legacy');
+    final legacyFile = File('${legacy.path}${Platform.pathSeparator}config.json');
+    await legacyFile.writeAsString(
+      '{"version":1,"groups":[{"id":"g","name":"Ancienne",'
+      '"enabled":true,"characters":[]}]}',
+    );
+
+    final migrated = OrganizerController(
+      store: ConfigStore(directory: temporary, legacyDirectory: legacy),
+      native: _RecordingBridge(),
+    );
+    await migrated.initialize();
+
+    expect(migrated.groups.single.name, 'Ancienne');
+    // The old copy is gone, so the migration cannot run twice and resurrect
+    // a configuration the user changed since.
+    expect(legacyFile.existsSync(), isFalse);
+    await migrated.flush();
+    migrated.dispose();
+    if (legacy.existsSync()) await legacy.delete(recursive: true);
+  });
+
+  test('a store pointed at a directory never touches the system location',
+      () async {
+    // Guard rail: without it, any test creating a store would migrate, and
+    // therefore delete, the configuration of the real installation.
+    final store = ConfigStore(directory: temporary);
+    await store.load();
+
+    final roaming = Platform.environment['APPDATA'];
+    if (roaming != null && roaming.isNotEmpty) {
+      final system = Directory(
+        '$roaming${Platform.pathSeparator}DofusOrganizer',
+      );
+      final before = system.existsSync();
+      await store.load();
+      expect(system.existsSync(), before,
+          reason: 'the system configuration folder must be left alone');
+    }
   });
 
   test('a configuration saved with a byte order mark still loads', () async {
