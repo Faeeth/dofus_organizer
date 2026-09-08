@@ -11,6 +11,7 @@ class GameCharacter {
     required this.name,
     required this.windowTitle,
     this.shortcut,
+    this.classIcon,
     this.enabled = true,
   });
 
@@ -25,6 +26,10 @@ class GameCharacter {
 
   final Shortcut? shortcut;
 
+  /// Key of the class portrait, such as `iop_m`. Null when the character has
+  /// no portrait.
+  final String? classIcon;
+
   /// Whether the character takes part in the shortcut resolution. A character
   /// is only live when its group is enabled too.
   final bool enabled;
@@ -36,6 +41,8 @@ class GameCharacter {
     String? windowTitle,
     Shortcut? shortcut,
     bool clearShortcut = false,
+    String? classIcon,
+    bool clearClassIcon = false,
     bool? enabled,
   }) {
     return GameCharacter(
@@ -43,6 +50,7 @@ class GameCharacter {
       name: name ?? this.name,
       windowTitle: windowTitle ?? this.windowTitle,
       shortcut: clearShortcut ? null : (shortcut ?? this.shortcut),
+      classIcon: clearClassIcon ? null : (classIcon ?? this.classIcon),
       enabled: enabled ?? this.enabled,
     );
   }
@@ -52,6 +60,7 @@ class GameCharacter {
         'name': name,
         'windowTitle': windowTitle,
         'enabled': enabled,
+        if (classIcon != null) 'classIcon': classIcon,
         if (shortcut != null) 'shortcut': shortcut!.toJson(),
       };
 
@@ -61,10 +70,12 @@ class GameCharacter {
     final name = json['name'];
     if (id is! String || id.isEmpty || name is! String) return null;
     final windowTitle = json['windowTitle'];
+    final classIcon = json['classIcon'];
     return GameCharacter(
       id: id,
       name: name,
       windowTitle: windowTitle is String ? windowTitle : name,
+      classIcon: classIcon is String && classIcon.isNotEmpty ? classIcon : null,
       shortcut: Shortcut.fromJson(json['shortcut']),
       enabled: json['enabled'] is bool ? json['enabled'] as bool : true,
     );

@@ -34,8 +34,10 @@ réduit d'autant le travail fait à chaque appui.
   réordonnent par glisser-déposer.
 - **Personnage** : un clic sur la ligne l'active ou le désactive, le badge
   ouvre l'enregistrement du raccourci, le menu permet de le modifier ou de le
-  supprimer. L'ordre au sein d'une équipe est la priorité de résolution quand
-  plusieurs personnages partagent une touche.
+  supprimer. Chaque personnage peut porter le portrait de sa classe, choisi
+  dans une grille des dix-neuf classes, masculin ou féminin. L'ordre au sein
+  d'une équipe est la priorité de résolution quand plusieurs personnages
+  partagent une touche.
 - **Barre de statut** : nombre de raccourcis enregistrés, raccourcis refusés
   par Windows, dernière activation.
 - **Paramètres** : réduction dans la zone de notification à la fermeture,
@@ -90,6 +92,7 @@ l'interface : ajouter un modificateur suffit le plus souvent.
           "name": "Kaska-yopette",
           "windowTitle": "Kaska-yopette",
           "enabled": true,
+          "classIcon": "iop_m",
           "shortcut": { "keyCode": 112, "modifiers": 0, "keyName": "F1" }
         }
       ]
@@ -97,6 +100,9 @@ l'interface : ajouter un modificateur suffit le plus souvent.
   ]
 }
 ```
+
+`classIcon` désigne le portrait, sous la forme `<classe>_<m|f>` ; une valeur
+inconnue est ignorée plutôt que de faire échouer l'affichage.
 
 `keyCode` est un code de touche virtuelle Win32 (`VK_F1` = `0x70`),
 `modifiers` un masque `MOD_ALT` (1), `MOD_CONTROL` (2), `MOD_SHIFT` (4),
@@ -132,8 +138,14 @@ windows/runner/        couche Win32
   native_bridge.*        canal de méthodes vers Dart
   single_instance.*      mutex nommé et réveil de l'instance existante
   startup_registration.* entrée Run de l'utilisateur courant
-tool/generate_icons.py icônes dérivées de assets/logo.png
+tool/generate_icons.py      icônes dérivées de assets/logo.png
+tool/extract_class_icons.py portraits de classe
 ```
+
+Les portraits de `assets/classes/` proviennent des fichiers du jeu, extraits
+par le projet compagnon `dtracker` ; `tool/extract_class_icons.py` les
+normalise en carrés transparents. Ils appartiennent à Ankama et ne sont pas
+couverts par la licence du code.
 
 Le canal `dofus_organizer/native` expose `hotkeys.apply`,
 `hotkeys.setSuspended`, `window.focus`, `window.setStartHidden`,

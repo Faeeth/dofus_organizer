@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../models/dofus_class.dart';
 import '../../models/game_character.dart';
 import '../../models/shortcut.dart';
 import '../../state/organizer_controller.dart';
 import '../theme.dart';
+import 'class_picker_dialog.dart';
 import 'shortcut_badge.dart';
 import 'shortcut_recorder_dialog.dart';
 
@@ -13,11 +15,13 @@ class CharacterDraft {
     required this.name,
     required this.windowTitle,
     required this.shortcut,
+    required this.classIcon,
   });
 
   final String name;
   final String windowTitle;
   final Shortcut? shortcut;
+  final String? classIcon;
 }
 
 /// Creates or edits a character: display name, window title fragment and
@@ -56,6 +60,7 @@ class _CharacterEditorDialogState extends State<CharacterEditorDialog> {
   late final TextEditingController _windowTitle =
       TextEditingController(text: widget.character?.windowTitle ?? '');
   late Shortcut? _shortcut = widget.character?.shortcut;
+  late String? _classIcon = widget.character?.classIcon;
 
   /// True while the user has not typed a window title: it then mirrors the
   /// name, which is what the client shows in most setups.
@@ -86,6 +91,12 @@ class _CharacterEditorDialogState extends State<CharacterEditorDialog> {
     setState(() => _shortcut = result.shortcut);
   }
 
+  Future<void> _pickClass() async {
+    final result = await ClassPickerDialog.show(context, initial: _classIcon);
+    if (result == null || !mounted) return;
+    setState(() => _classIcon = result.iconKey);
+  }
+
   Future<void> _test() async {
     final title = _effectiveTitle;
     if (title.isEmpty) return;
@@ -107,6 +118,7 @@ class _CharacterEditorDialogState extends State<CharacterEditorDialog> {
       name: name,
       windowTitle: _effectiveTitle,
       shortcut: _shortcut,
+      classIcon: _classIcon,
     ));
   }
 
@@ -124,6 +136,28 @@ class _CharacterEditorDialogState extends State<CharacterEditorDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                _ClassButton(iconKey: _classIcon, onTap: _pickClass),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    classNameForIcon(_classIcon) ?? 'Aucune classe',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: _classIcon == null
+                          ? AppColors.textDisabled
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _pickClass,
+                  child: Text(_classIcon == null ? 'Choisir' : 'Changer'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _name,
               autofocus: true,
@@ -191,6 +225,31 @@ class _CharacterEditorDialogState extends State<CharacterEditorDialog> {
           child: Text(isNew ? 'Ajouter' : 'Enregistrer'),
         ),
       ],
+    );
+  }
+}
+
+/// Portrait acting as a button towards the class picker.
+class _ClassButton extends StatelessWidget {
+  const _ClassButton({required this.iconKey, required this.onTap});
+
+  final String? iconKey;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          border: Border.all(color: AppColors.outline),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: ClassAvatar(iconKey: iconKey, size: 44),
+      ),
     );
   }
 }

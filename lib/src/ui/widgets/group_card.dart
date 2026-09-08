@@ -5,6 +5,7 @@ import '../../models/game_character.dart';
 import '../../state/organizer_controller.dart';
 import '../theme.dart';
 import 'character_editor_dialog.dart';
+import 'class_picker_dialog.dart';
 import 'shortcut_badge.dart';
 import 'shortcut_recorder_dialog.dart';
 
@@ -104,6 +105,7 @@ class _GroupHeader extends StatelessWidget {
       name: draft.name,
       windowTitle: draft.windowTitle,
       shortcut: draft.shortcut,
+      classIcon: draft.classIcon,
     );
   }
 
@@ -251,6 +253,8 @@ class CharacterRow extends StatelessWidget {
       windowTitle: draft.windowTitle,
       shortcut: draft.shortcut,
       clearShortcut: draft.shortcut == null,
+      classIcon: draft.classIcon,
+      clearClassIcon: draft.classIcon == null,
     );
   }
 
@@ -308,7 +312,12 @@ class CharacterRow extends StatelessWidget {
                     !character.enabled,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
+                Opacity(
+                  opacity: _live ? 1 : 0.45,
+                  child: ClassAvatar(iconKey: character.classIcon, size: 34),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
