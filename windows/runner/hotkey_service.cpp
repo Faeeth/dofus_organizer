@@ -74,6 +74,12 @@ void HotkeyService::SetSuspended(bool suspended) {
 std::vector<std::string> HotkeyService::RegisterAll() {
   std::vector<std::string> rejected;
   if (!host_) {
+    // The host window could not be created: nothing can be registered, and
+    // reporting every binding as rejected surfaces the failure in the UI
+    // instead of leaving silently dead shortcuts.
+    for (const HotkeyBinding& binding : bindings_) {
+      rejected.push_back(binding.id);
+    }
     return rejected;
   }
   for (size_t i = 0; i < bindings_.size(); ++i) {
