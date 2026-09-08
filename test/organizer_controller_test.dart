@@ -167,6 +167,24 @@ void main() {
     reloaded.dispose();
   });
 
+  test('a configuration saved with a byte order mark still loads', () async {
+    final store = ConfigStore(directory: temporary);
+    await store.file.writeAsString(
+      '﻿{"version":1,"groups":[{"id":"g","name":"Kaska",'
+      '"enabled":true,"characters":[]}]}',
+    );
+
+    final loaded = OrganizerController(
+      store: store,
+      native: _RecordingBridge(),
+    );
+    await loaded.initialize();
+
+    expect(loaded.groups.single.name, 'Kaska');
+    await loaded.flush();
+    loaded.dispose();
+  });
+
   test('configuration survives a reload', () async {
     final team = controller.addGroup('Kaska');
     controller.addCharacter(team.id,

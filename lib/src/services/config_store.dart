@@ -39,7 +39,12 @@ class ConfigStore {
       if (!await file.exists()) {
         return const OrganizerConfig();
       }
-      final content = await file.readAsString();
+      var content = await file.readAsString();
+      // A Windows editor saving the file usually prepends a byte order mark,
+      // which jsonDecode rejects.
+      if (content.startsWith('﻿')) {
+        content = content.substring(1);
+      }
       if (content.trim().isEmpty) {
         return const OrganizerConfig();
       }
