@@ -33,10 +33,9 @@ réduit d'autant le travail fait à chaque appui.
   cette équipe, ajout de personnage, renommage, suppression. Les équipes se
   réordonnent par glisser-déposer.
 - **Personnage** : un clic sur la ligne l'active ou le désactive, le badge
-  ouvre l'enregistrement du raccourci, le menu permet de le modifier, de le
-  déplacer vers une autre équipe ou de le supprimer. L'ordre au sein d'une
-  équipe est la priorité de résolution quand plusieurs personnages partagent
-  une touche.
+  ouvre l'enregistrement du raccourci, le menu permet de le modifier ou de le
+  supprimer. L'ordre au sein d'une équipe est la priorité de résolution quand
+  plusieurs personnages partagent une touche.
 - **Barre de statut** : nombre de raccourcis enregistrés, raccourcis refusés
   par Windows, dernière activation.
 - **Paramètres** : réduction dans la zone de notification à la fermeture,
@@ -56,13 +55,21 @@ fenêtres invisibles, sans titre, masquées par DWM ou appartenant au tool
 lui-même sont ignorées. Le bouton **Tester** de l'éditeur de personnage
 active la fenêtre correspondante sans passer par le raccourci.
 
-## Limites connues
+## Raccourcis
 
-`RegisterHotKey` refuse les touches déjà réservées par le système ou par une
-autre application. **F12 est réservé par le débogueur Windows** et ne peut
-donc pas servir de raccourci, contrairement au script AutoHotkey d'origine
-qui passait par un hook clavier bas niveau. Les raccourcis refusés sont
-signalés en rouge dans l'interface : il suffit d'en choisir un autre.
+L'enregistreur accepte toutes les touches — fonction, lettres, chiffres, pavé
+numérique, navigation, ponctuation, multimédia — avec ou sans `Ctrl`, `Alt`,
+`Maj` et `Win`. Seule `Échap` est réservée, elle ferme la capture. Le code de
+touche virtuelle des touches de ponctuation dépend de la disposition du
+clavier : il est résolu via `VkKeyScanEx` sur la disposition courante, et le
+libellé affiché est celui de la touche telle qu'elle a été pressée.
+
+C'est ensuite Windows qui arbitre : `RegisterHotKey` refuse les touches déjà
+réservées par le système ou détenues par une autre application. **F12 est
+réservé par le débogueur Windows** et ne peut donc pas être enregistré,
+contrairement au script AutoHotkey d'origine qui passait par un hook clavier
+bas niveau. Les raccourcis refusés sont signalés en rouge dans l'interface :
+il suffit d'en choisir un autre.
 
 ## Configuration
 
@@ -83,7 +90,7 @@ signalés en rouge dans l'interface : il suffit d'en choisir un autre.
           "name": "Kaska-yopette",
           "windowTitle": "Kaska-yopette",
           "enabled": true,
-          "shortcut": { "keyCode": 112, "modifiers": 0 }
+          "shortcut": { "keyCode": 112, "modifiers": 0, "keyName": "F1" }
         }
       ]
     }
@@ -93,7 +100,9 @@ signalés en rouge dans l'interface : il suffit d'en choisir un autre.
 
 `keyCode` est un code de touche virtuelle Win32 (`VK_F1` = `0x70`),
 `modifiers` un masque `MOD_ALT` (1), `MOD_CONTROL` (2), `MOD_SHIFT` (4),
-`MOD_WIN` (8).
+`MOD_WIN` (8). `keyName` est le libellé de la touche au moment de la capture,
+conservé parce qu'un code de touche seul ne permet pas de retrouver le
+caractère d'une touche de ponctuation sur une disposition arbitraire.
 
 ## Développement
 
@@ -127,9 +136,14 @@ tool/generate_icons.py génération des icônes
 ```
 
 Le canal `dofus_organizer/native` expose `hotkeys.apply`,
-`hotkeys.setSuspended`, `window.focus`, `app.startedHidden`,
-`startup.isEnabled`, `startup.setEnabled`, et émet `onHotkey` et
-`onSecondInstance`.
+`hotkeys.setSuspended`, `window.focus`, `window.setStartHidden`,
+`keys.virtualKeyForCharacter`, `app.startedHidden`, `startup.isEnabled`,
+`startup.setEnabled`, et émet `onHotkey` et `onSecondInstance`.
+
+La géométrie de la fenêtre — taille, taille minimale, centrage, premier
+affichage — est entièrement gérée par le runner : la convertir depuis Dart
+demanderait un rapport de pixels que la vue n'expose pas encore avant la
+première image.
 
 ## Licence
 
