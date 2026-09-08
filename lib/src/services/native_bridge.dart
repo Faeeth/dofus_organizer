@@ -86,6 +86,17 @@ class NativeBridge {
     return found ?? false;
   }
 
+  /// Resolves the virtual key producing [character] on the current keyboard
+  /// layout. Returns 0 when the character needs more than one key. Used for
+  /// the punctuation keys, whose codes are layout dependent.
+  Future<int> virtualKeyForCharacter(String character) async {
+    final keyCode = await _channel.invokeMethod<int>(
+      'keys.virtualKeyForCharacter',
+      character,
+    );
+    return keyCode ?? 0;
+  }
+
   /// Tells the runner whether the window must stay hidden when the first
   /// frame is rendered. Must be called before `runApp`.
   Future<void> setStartHidden({required bool hidden}) {

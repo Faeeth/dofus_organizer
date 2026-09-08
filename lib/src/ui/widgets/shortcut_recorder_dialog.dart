@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -71,22 +73,36 @@ class _ShortcutRecorderDialogState extends State<ShortcutRecorderDialog> {
     super.dispose();
   }
 
+  /// Every key is accepted: the user decides what makes a usable shortcut.
+  /// Escape is the only reserved key, it closes the dialog.
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent) {
-      return KeyEventResult.handled;
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        Navigator.of(context).pop();
+      } else if (!isModifierKey(event.logicalKey)) {
+        unawaited(_capture(event.logicalKey));
+      }
     }
-    final key = event.logicalKey;
-    if (key == LogicalKeyboardKey.escape) {
-      Navigator.of(context).pop();
-      return KeyEventResult.handled;
+    // Nothing escapes the recorder while it is open, including tab traversal.
+    return KeyEventResult.handled;
+  }
+
+  Future<void> _capture(LogicalKeyboardKey key) async {
+    var keyCode = virtualKeyForLogicalKey(key);
+    // Punctuation and dead keys have layout dependent codes: ask Windows what
+    // key produces the character instead of guessing from a table.
+    if (keyCode == null && key.keyLabel.isNotEmpty) {
+      final resolved =
+          await widget.controller.virtualKeyForCharacter(key.keyLabel);
+      if (resolved != 0) {
+        keyCode = resolved;
+      }
     }
-    if (isModifierKey(key)) {
-      return KeyEventResult.handled;
-    }
-    final keyCode = virtualKeyForLogicalKey(key);
+    if (!mounted) return;
     if (keyCode == null) {
-      setState(() => _error = 'Cette touche ne peut pas servir de raccourci.');
-      return KeyEventResult.handled;
+      setState(() =>
+          _error = 'Windows ne sait pas associer cette touche à un raccourci.');
+      return;
     }
     final keyboard = HardwareKeyboard.instance;
     var modifiers = 0;
@@ -95,10 +111,13 @@ class _ShortcutRecorderDialogState extends State<ShortcutRecorderDialog> {
     if (keyboard.isShiftPressed) modifiers |= HotkeyModifier.shift;
     if (keyboard.isMetaPressed) modifiers |= HotkeyModifier.win;
     setState(() {
-      _captured = Shortcut(keyCode: keyCode, modifiers: modifiers);
+      _captured = Shortcut(
+        keyCode: keyCode!,
+        modifiers: modifiers,
+        keyName: key.keyLabel.isEmpty ? null : key.keyLabel,
+      );
       _error = null;
     });
-    return KeyEventResult.handled;
   }
 
   @override

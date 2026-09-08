@@ -11,6 +11,11 @@
 
 namespace dofus {
 
+// Returns the virtual key producing |character| on the current keyboard
+// layout, or 0 when the character is not reachable from a single key. Used to
+// bind punctuation keys, whose virtual key codes depend on the layout.
+UINT VirtualKeyForCharacter(wchar_t character);
+
 // A shortcut bound to an ordered list of window title needles. Several
 // characters may share the same shortcut: the first one whose window exists
 // wins, which is how alternate teams are handled.

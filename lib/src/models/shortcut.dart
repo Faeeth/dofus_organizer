@@ -13,13 +13,18 @@ abstract final class HotkeyModifier {
 /// handed to `RegisterHotKey` without any further translation.
 @immutable
 class Shortcut {
-  const Shortcut({required this.keyCode, this.modifiers = 0});
+  const Shortcut({required this.keyCode, this.modifiers = 0, this.keyName});
 
   /// Virtual key code (`VK_*`).
   final int keyCode;
 
   /// Bitmask of [HotkeyModifier] values.
   final int modifiers;
+
+  /// Label captured while recording. Virtual key codes of punctuation keys
+  /// depend on the keyboard layout, so the key as the user saw it is stored
+  /// rather than guessed back from the code.
+  final String? keyName;
 
   /// Identifier shared by every character bound to the same keys. The native
   /// side registers one shortcut per signature, not one per character.
@@ -38,21 +43,33 @@ class Shortcut {
     return parts.join(' + ');
   }
 
-  String get keyLabel => virtualKeyLabel(keyCode);
+  String get keyLabel {
+    final captured = keyName;
+    if (captured != null && captured.isNotEmpty) return captured;
+    return virtualKeyLabel(keyCode);
+  }
 
-  Map<String, Object?> toJson() => {'keyCode': keyCode, 'modifiers': modifiers};
+  Map<String, Object?> toJson() => {
+        'keyCode': keyCode,
+        'modifiers': modifiers,
+        if (keyName != null) 'keyName': keyName,
+      };
 
   static Shortcut? fromJson(Object? json) {
     if (json is! Map) return null;
     final keyCode = json['keyCode'];
     if (keyCode is! int || keyCode == 0) return null;
     final modifiers = json['modifiers'];
+    final keyName = json['keyName'];
     return Shortcut(
       keyCode: keyCode,
       modifiers: modifiers is int ? modifiers : 0,
+      keyName: keyName is String && keyName.isNotEmpty ? keyName : null,
     );
   }
 
+  /// Equality ignores [keyName]: what identifies a shortcut is what gets
+  /// registered in Windows.
   @override
   bool operator ==(Object other) =>
       other is Shortcut &&
@@ -85,6 +102,29 @@ final Map<LogicalKeyboardKey, int> _explicitVirtualKeys =
   LogicalKeyboardKey.arrowDown: 0x28,
   LogicalKeyboardKey.insert: 0x2D,
   LogicalKeyboardKey.delete: 0x2E,
+  LogicalKeyboardKey.pause: 0x13,
+  LogicalKeyboardKey.capsLock: 0x14,
+  LogicalKeyboardKey.printScreen: 0x2C,
+  LogicalKeyboardKey.contextMenu: 0x5D,
+  LogicalKeyboardKey.numLock: 0x90,
+  LogicalKeyboardKey.scrollLock: 0x91,
+  // The numeric keypad Enter shares VK_RETURN: Windows does not expose a
+  // distinct virtual key for it.
+  LogicalKeyboardKey.numpadEnter: 0x0D,
+  LogicalKeyboardKey.browserBack: 0xA6,
+  LogicalKeyboardKey.browserForward: 0xA7,
+  LogicalKeyboardKey.browserRefresh: 0xA8,
+  LogicalKeyboardKey.browserStop: 0xA9,
+  LogicalKeyboardKey.browserSearch: 0xAA,
+  LogicalKeyboardKey.browserFavorites: 0xAB,
+  LogicalKeyboardKey.browserHome: 0xAC,
+  LogicalKeyboardKey.audioVolumeMute: 0xAD,
+  LogicalKeyboardKey.audioVolumeDown: 0xAE,
+  LogicalKeyboardKey.audioVolumeUp: 0xAF,
+  LogicalKeyboardKey.mediaTrackNext: 0xB0,
+  LogicalKeyboardKey.mediaTrackPrevious: 0xB1,
+  LogicalKeyboardKey.mediaStop: 0xB2,
+  LogicalKeyboardKey.mediaPlayPause: 0xB3,
   LogicalKeyboardKey.numpadMultiply: 0x6A,
   LogicalKeyboardKey.numpadAdd: 0x6B,
   LogicalKeyboardKey.numpadSubtract: 0x6D,
@@ -109,6 +149,12 @@ const Map<int, String> _virtualKeyLabels = <int, String>{
   0x28: 'Bas',
   0x2D: 'Inser',
   0x2E: 'Suppr',
+  0x13: 'Pause',
+  0x14: 'Verr maj',
+  0x2C: 'Impr écran',
+  0x5D: 'Menu',
+  0x90: 'Verr num',
+  0x91: 'Arrêt défil',
   0x6A: 'Num *',
   0x6B: 'Num +',
   0x6D: 'Num -',

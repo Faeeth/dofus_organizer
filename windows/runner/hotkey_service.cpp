@@ -14,6 +14,17 @@ int IdForIndex(size_t index) {
 
 }  // namespace
 
+UINT VirtualKeyForCharacter(wchar_t character) {
+  SHORT scan = ::VkKeyScanExW(character, ::GetKeyboardLayout(0));
+  if (scan == -1) {
+    return 0;
+  }
+  // The high byte carries the shift state needed to type the character; only
+  // the key itself matters here, the modifiers come from what the user
+  // actually pressed.
+  return static_cast<UINT>(scan & 0xFF);
+}
+
 HotkeyService::HotkeyService(TriggerCallback on_trigger)
     : on_trigger_(std::move(on_trigger)) {}
 

@@ -17,6 +17,7 @@ constexpr char kMethodStartedHidden[] = "app.startedHidden";
 constexpr char kMethodStartHidden[] = "window.setStartHidden";
 constexpr char kMethodStartupGet[] = "startup.isEnabled";
 constexpr char kMethodStartupSet[] = "startup.setEnabled";
+constexpr char kMethodVirtualKey[] = "keys.virtualKeyForCharacter";
 constexpr char kEventHotkey[] = "onHotkey";
 constexpr char kEventSecondInstance[] = "onSecondInstance";
 
@@ -159,6 +160,22 @@ void NativeBridge::HandleMethodCall(
     int index = focus.ActivateFirstMatch(
         {NormalizeTitleNeedle(Utf16FromUtf8(*title))});
     result->Success(EncodableValue(index >= 0));
+    return;
+  }
+
+  if (call.method_name() == kMethodVirtualKey) {
+    const auto* character = std::get_if<std::string>(call.arguments());
+    if (character == nullptr) {
+      result->Error("bad_arguments", "Expected a character");
+      return;
+    }
+    const std::wstring wide = Utf16FromUtf8(*character);
+    if (wide.empty()) {
+      result->Success(EncodableValue(0));
+      return;
+    }
+    result->Success(
+        EncodableValue(static_cast<int32_t>(VirtualKeyForCharacter(wide[0]))));
     return;
   }
 

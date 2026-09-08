@@ -28,6 +28,9 @@ class _RecordingBridge extends NativeBridge {
 
   @override
   Future<void> setSuspended({required bool suspended}) async {}
+
+  @override
+  Future<int> virtualKeyForCharacter(String character) async => 0;
 }
 
 void main() {
@@ -141,6 +144,27 @@ void main() {
     final stored = controller.groups.single.characters.single;
     expect(controller.isConflicting(stored), isTrue);
     expect(controller.activeShortcutCount, 0);
+  });
+
+  test('a recorded key label survives a reload', () async {
+    // VK_OEM_1 produces different characters depending on the layout.
+    const layoutDependent = Shortcut(keyCode: 0xBA, modifiers: 0, keyName: '\$');
+    final team = controller.addGroup('Team');
+    controller.addCharacter(team.id,
+        name: 'A', windowTitle: 'A', shortcut: layoutDependent);
+    await controller.flush();
+
+    final reloaded = OrganizerController(
+      store: ConfigStore(directory: temporary),
+      native: _RecordingBridge(),
+    );
+    await reloaded.initialize();
+
+    final stored = reloaded.groups.single.characters.single.shortcut!;
+    expect(stored.keyCode, 0xBA);
+    expect(stored.keyLabel, '\$');
+    await reloaded.flush();
+    reloaded.dispose();
   });
 
   test('configuration survives a reload', () async {

@@ -273,6 +273,11 @@ class OrganizerController extends ChangeNotifier {
     await _native.setSuspended(suspended: false);
   }
 
+  /// Resolves a virtual key from the character a key produces, for the keys
+  /// whose code depends on the keyboard layout.
+  Future<int> virtualKeyForCharacter(String character) =>
+      _native.virtualKeyForCharacter(character);
+
   /// Activates the window of [character] without going through its shortcut.
   Future<bool> testCharacter(GameCharacter character) {
     return _native.focusWindow(character.windowTitle);
