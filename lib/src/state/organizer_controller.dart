@@ -217,28 +217,6 @@ class OrganizerController extends ChangeNotifier {
     });
   }
 
-  /// Moves a character to another group, keeping its shortcut.
-  void moveCharacter(String fromGroupId, String characterId, String toGroupId) {
-    if (fromGroupId == toGroupId) return;
-    GameCharacter? moved;
-    final groups = _config.groups.map((group) {
-      if (group.id != fromGroupId) return group;
-      moved = group.characters.firstWhereOrNull((c) => c.id == characterId);
-      return group.copyWith(
-        characters: group.characters.where((c) => c.id != characterId).toList(),
-      );
-    }).toList();
-    final character = moved;
-    if (character == null) return;
-    _update(_config.copyWith(
-      groups: groups
-          .map((group) => group.id == toGroupId
-              ? group.copyWith(characters: [...group.characters, character])
-              : group)
-          .toList(),
-    ));
-  }
-
   // --- Settings ----------------------------------------------------------
 
   void setCloseToTray(bool value) {
@@ -426,11 +404,3 @@ class OrganizerController extends ChangeNotifier {
   }
 }
 
-extension _FirstWhereOrNull<T> on Iterable<T> {
-  T? firstWhereOrNull(bool Function(T element) test) {
-    for (final element in this) {
-      if (test(element)) return element;
-    }
-    return null;
-  }
-}

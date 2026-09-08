@@ -276,9 +276,6 @@ class CharacterRow extends StatelessWidget {
     final highlighted = trigger != null &&
         trigger.characterId == character.id &&
         DateTime.now().difference(trigger.at) < const Duration(seconds: 2);
-    final otherGroups =
-        controller.groups.where((g) => g.id != group.id).toList();
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Material(
@@ -348,31 +345,16 @@ class CharacterRow extends StatelessWidget {
                   icon: const Icon(Icons.more_horiz,
                       size: 18, color: AppColors.textSecondary),
                   onSelected: (value) {
-                    if (value == 'edit') {
-                      _edit(context);
-                    } else if (value == 'delete') {
-                      controller.removeCharacter(group.id, character.id);
-                    } else if (value.startsWith('move:')) {
-                      controller.moveCharacter(
-                        group.id,
-                        character.id,
-                        value.substring(5),
-                      );
+                    switch (value) {
+                      case 'edit':
+                        _edit(context);
+                      case 'delete':
+                        controller.removeCharacter(group.id, character.id);
                     }
                   },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Modifier')),
-                    if (otherGroups.isNotEmpty) const PopupMenuDivider(),
-                    for (final target in otherGroups)
-                      PopupMenuItem(
-                        value: 'move:${target.id}',
-                        child: Text('Déplacer vers « ${target.name} »'),
-                      ),
-                    const PopupMenuDivider(),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Text('Supprimer'),
-                    ),
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Modifier')),
+                    PopupMenuItem(value: 'delete', child: Text('Supprimer')),
                   ],
                 ),
               ],
