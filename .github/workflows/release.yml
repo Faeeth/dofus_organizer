@@ -1,0 +1,111 @@
+# Construit une version et la publie.
+#
+# Se declenche sur un tag `v*` — `git tag v1.0.0 && git push --tags` — ou a la
+# main depuis l'onglet Actions.
+#
+# Produit deux fichiers :
+#
+#   Dofus Organizer-<version>-installateur.exe   installation par utilisateur
+#   DofusOrganizer-<version>-portable.zip        dossier a decompresser
+#
+# Le nom de l'installateur porte « installateur » : c'est a cela que le tool
+# le reconnait parmi les fichiers joints a la release.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version, sans le v (ex. 1.0.0)"
+        required: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+
+    # Le jeton du workflow est en lecture seule par defaut ; publier une
+    # release demande l'ecriture.
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version
+        id: version
+        shell: bash
+        run: |
+          # Le tag fait foi quand il y en a un ; sinon ce qui a ete saisi.
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "v=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "v=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Verifier
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Construire
+        # La version voyage par `--dart-define` : elle sert a se comparer a la
+        # derniere publiee. Sans elle, le binaire se croit en developpement et
+        # ne propose jamais de mise a jour.
+        run: >
+          flutter build windows --release
+          --dart-define=DOFUS_ORGANIZER_VERSION=${{ steps.version.outputs.v }}
+
+      # ------------------------------------------------------------ portable
+      # Le marqueur distingue une copie decompressee d'une installation : le
+      # tool n'y propose pas de lancer l'installateur, qui poserait une seconde
+      # copie ailleurs.
+      - name: Archive portable
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.v }}"
+          $release = "build\windows\x64\runner\Release"
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $marqueur = @(
+            "Dofus Organizer $version, version portable.",
+            "",
+            "Lancez dofus_organizer.exe, rien a installer.",
+            "La configuration est ecrite dans %LOCALAPPDATA%\DofusOrganizer et",
+            "survit au remplacement de ce dossier."
+          )
+          Set-Content -Path "$release\portable.txt" -Encoding utf8 -Value $marqueur
+          Compress-Archive -Path "$release\*" -DestinationPath "dist\DofusOrganizer-$version-portable.zip"
+          Remove-Item "$release\portable.txt" -Force
+
+      # ------------------------------------------------------- installateur
+      # Inno Setup n'est pas garanti sur l'image du runner : on l'installe.
+      - name: Installer Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Construire l'installateur
+        shell: pwsh
+        run: |
+          # Les accolades ne sont pas decoratives : sans elles, PowerShell
+          # s'arrete au nom `ProgramFiles` et laisse le `(x86)` de cote.
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\dofus_organizer.iss /DVersion=${{ steps.version.outputs.v }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DofusOrganizer-${{ steps.version.outputs.v }}
+          path: dist/*
+
+      # La release est ouverte en brouillon : les notes de version s'ecrivent
+      # a la main avant publication.
+      - name: Publier
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          draft: true

@@ -6,6 +6,21 @@ plan. Les personnages sont regroupés en équipes que l'on active ou désactive
 d'un clic, ce qui permet à plusieurs équipes de partager les mêmes touches
 sans se marcher dessus.
 
+## Installation
+
+Deux formes, au choix, sur la [page des
+releases](https://github.com/Faeeth/dofus_organizer/releases) :
+
+- **`DofusOrganizer-<version>-installateur.exe`** — installation pour
+  l'utilisateur courant, sans droits administrateur. Propose le raccourci
+  bureau et le lancement au démarrage de Windows.
+- **`DofusOrganizer-<version>-portable.zip`** — à décompresser où l'on veut,
+  rien à installer. Lancez `dofus_organizer.exe`.
+
+Les deux écrivent leur configuration au même endroit, en dehors du dossier du
+programme : remplacer le dossier portable ou réinstaller conserve les équipes
+et les raccourcis.
+
 ## Mise à jour
 
 Le tool interroge les releases du dépôt une fois au lancement, et se tait dans
@@ -152,6 +167,8 @@ windows/runner/        couche Win32
   startup_registration.* entrée Run de l'utilisateur courant
 tool/generate_icons.py      icônes dérivées de assets/logo.png
 tool/extract_class_icons.py portraits de classe
+tool/package.ps1            archive portable et installateur
+installer/                  script Inno Setup
 ```
 
 Les portraits de `assets/classes/` proviennent des fichiers du jeu, extraits
