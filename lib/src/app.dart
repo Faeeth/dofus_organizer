@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -5,15 +6,21 @@ import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'state/organizer_controller.dart';
+import 'state/update_controller.dart';
 import 'ui/home_screen.dart';
 import 'ui/theme.dart';
 
 /// Root widget wiring the notification area, the window lifecycle and the
 /// organizer state together.
 class OrganizerApp extends StatefulWidget {
-  const OrganizerApp({super.key, required this.controller});
+  const OrganizerApp({
+    super.key,
+    required this.controller,
+    required this.updates,
+  });
 
   final OrganizerController controller;
+  final UpdateController updates;
 
   @override
   State<OrganizerApp> createState() => _OrganizerAppState();
@@ -31,6 +38,8 @@ class _OrganizerAppState extends State<OrganizerApp>
     trayManager.addListener(this);
     widget.controller.onShowRequested = _showWindow;
     _initTray();
+    // Silent unless something newer exists, so it can run without asking.
+    unawaited(widget.updates.checkOnce());
   }
 
   @override
@@ -102,7 +111,11 @@ class _OrganizerAppState extends State<OrganizerApp>
       title: 'Dofus Organizer',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: HomeScreen(controller: widget.controller),
+      home: HomeScreen(
+        controller: widget.controller,
+        updates: widget.updates,
+        onQuit: _quit,
+      ),
     );
   }
 }

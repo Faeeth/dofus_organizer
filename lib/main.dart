@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'src/app.dart';
+import 'src/app_version.dart';
 import 'src/services/config_store.dart';
 import 'src/services/native_bridge.dart';
 import 'src/state/organizer_controller.dart';
+import 'src/state/update_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,5 +37,7 @@ Future<void> main() async {
     await windowManager.setPreventClose(true);
   });
 
-  runApp(OrganizerApp(controller: controller));
+  final updates = UpdateController(portable: isPortableBuild);
+
+  runApp(OrganizerApp(controller: controller, updates: updates));
 }

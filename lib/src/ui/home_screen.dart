@@ -2,15 +2,26 @@ import 'package:flutter/material.dart';
 
 import '../models/game_character.dart';
 import '../state/organizer_controller.dart';
+import '../state/update_controller.dart';
 import 'theme.dart';
 import 'widgets/group_card.dart';
 import 'widgets/settings_dialog.dart';
+import 'widgets/update_dialog.dart';
 
 /// Main screen: the teams, their characters and the global status.
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.controller});
+  const HomeScreen({
+    super.key,
+    required this.controller,
+    required this.updates,
+    required this.onQuit,
+  });
 
   final OrganizerController controller;
+  final UpdateController updates;
+
+  /// Closes the organizer, used once an update installer took over.
+  final Future<void> Function() onQuit;
 
   Future<void> _addGroup(BuildContext context) async {
     final name = await promptForName(context, 'Nouvelle équipe');
@@ -27,7 +38,12 @@ class HomeScreen extends StatelessWidget {
         builder: (context, _) {
           return Column(
             children: [
-              _Header(controller: controller, onAddGroup: () => _addGroup(context)),
+              _Header(
+                controller: controller,
+                updates: updates,
+                onQuit: onQuit,
+                onAddGroup: () => _addGroup(context),
+              ),
               const Divider(height: 1),
               Expanded(
                 child: controller.groups.isEmpty
@@ -59,9 +75,16 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.controller, required this.onAddGroup});
+  const _Header({
+    required this.controller,
+    required this.updates,
+    required this.onQuit,
+    required this.onAddGroup,
+  });
 
   final OrganizerController controller;
+  final UpdateController updates;
+  final Future<void> Function() onQuit;
   final VoidCallback onAddGroup;
 
   @override
@@ -93,6 +116,7 @@ class _Header extends StatelessWidget {
             ],
           ),
           const Spacer(),
+          UpdateBadge(controller: updates, onQuit: onQuit),
           OutlinedButton.icon(
             onPressed: onAddGroup,
             icon: const Icon(Icons.add, size: 16),

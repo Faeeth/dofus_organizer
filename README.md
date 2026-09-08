@@ -6,6 +6,17 @@ plan. Les personnages sont regroupés en équipes que l'on active ou désactive
 d'un clic, ce qui permet à plusieurs équipes de partager les mêmes touches
 sans se marcher dessus.
 
+## Mise à jour
+
+Le tool interroge les releases du dépôt une fois au lancement, et se tait dans
+tous les cas sauf un : une version publiée plus récente que la sienne. Pas de
+réseau, dépôt injoignable, réponse illisible, rien de neuf — rien n'est dit.
+
+Quand il y a mieux, un bouton apparaît dans l'en-tête. Une installation
+télécharge l'installateur et se met à jour toute seule. Une copie portable est
+renvoyée vers la page de la release : lancer l'installateur y poserait une
+seconde copie ailleurs et laisserait le dossier en arrière.
+
 ## Fonctionnement
 
 Le chemin critique — appui sur la touche jusqu'à l'activation de la fenêtre —
