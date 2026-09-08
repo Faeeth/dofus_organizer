@@ -172,7 +172,7 @@ class _StatusBar extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               '${controller.rejectedShortcutCount} raccourci(s) refusé(s) '
-              'par Windows',
+              'par Windows, ajoutez un modificateur',
               style: const TextStyle(color: AppColors.danger, fontSize: 12),
             ),
           ],

@@ -79,7 +79,8 @@ class ShortcutBadge extends StatelessWidget {
     }
     return Tooltip(
       message: conflicting
-          ? 'Raccourci refusé par Windows, déjà utilisé par une autre application'
+          ? 'Refusé par Windows : touche réservée ou déjà prise par une autre '
+              'application. Ajoutez Ctrl, Alt ou Maj, ou changez de touche.'
           : 'Modifier le raccourci',
       child: InkWell(
         onTap: onTap,

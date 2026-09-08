@@ -65,11 +65,12 @@ clavier : il est résolu via `VkKeyScanEx` sur la disposition courante, et le
 libellé affiché est celui de la touche telle qu'elle a été pressée.
 
 C'est ensuite Windows qui arbitre : `RegisterHotKey` refuse les touches déjà
-réservées par le système ou détenues par une autre application. **F12 est
-réservé par le débogueur Windows** et ne peut donc pas être enregistré,
+réservées par le système ou détenues par une autre application. **F12 seul est
+réservé par le débogueur Windows** et ne peut pas être enregistré,
 contrairement au script AutoHotkey d'origine qui passait par un hook clavier
-bas niveau. Les raccourcis refusés sont signalés en rouge dans l'interface :
-il suffit d'en choisir un autre.
+bas niveau ; `Ctrl + F12` en revanche fonctionne, comme toute combinaison de
+F12 avec un modificateur. Les raccourcis refusés sont signalés en rouge dans
+l'interface : ajouter un modificateur suffit le plus souvent.
 
 ## Configuration
 

@@ -185,7 +185,8 @@ class _ShortcutRow extends StatelessWidget {
               if (conflicting) ...[
                 const SizedBox(height: 2),
                 const Text(
-                  'Refusé par Windows, cette touche est déjà réservée.',
+                  'Refusé par Windows : la touche est déjà réservée. '
+                  'Ajoutez Ctrl, Alt ou Maj, ou changez de touche.',
                   style: TextStyle(color: AppColors.danger, fontSize: 11.5),
                 ),
               ],
