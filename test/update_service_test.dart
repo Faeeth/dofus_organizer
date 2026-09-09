@@ -170,12 +170,23 @@ void main() {
 
     Future<AppUpdate?> nothing({required String currentVersion}) async => null;
 
+    /// Stands in for the real download: reports progress, then hands back a
+    /// path as if the installer had been written.
+    Stream<double> fakeDownload(
+      AppUpdate update,
+      void Function(String?) done,
+    ) async* {
+      yield 0.5;
+      yield 1;
+      done('/tmp/installateur.exe');
+    }
+
     test('nothing published leaves the badge hidden', () async {
       final controller = UpdateController(
         currentVersion: '1.0.0',
         fetch: nothing,
       );
-      await controller.checkOnce();
+      await controller.check();
       expect(controller.isAvailable, isFalse);
       expect(controller.stage, UpdateStage.idle);
     });
@@ -185,7 +196,7 @@ void main() {
         currentVersion: '1.0.0',
         fetch: found,
       );
-      await controller.checkOnce();
+      await controller.check();
       expect(controller.isAvailable, isTrue);
       expect(controller.canInstall, isTrue);
       expect(controller.stage, UpdateStage.available);
@@ -197,10 +208,106 @@ void main() {
         portable: true,
         fetch: found,
       );
-      await controller.checkOnce();
+      await controller.check();
       expect(controller.isAvailable, isTrue);
       expect(controller.canInstall, isFalse);
       expect(await controller.download(), isFalse);
+    });
+
+    test('the announcement waits until it is shown', () async {
+      final controller = UpdateController(
+        currentVersion: '1.0.0',
+        fetch: found,
+      );
+      await controller.check();
+      expect(controller.isPopupPending, isTrue);
+
+      controller.markPopupShown();
+      expect(controller.isPopupPending, isFalse);
+      // The badge stays: only the announcement was spent.
+      expect(controller.isAvailable, isTrue);
+    });
+
+    test('ignoring silences the automatic check and clears what was found',
+        () async {
+      DateTime? persisted;
+      final controller = UpdateController(
+        currentVersion: '1.0.0',
+        fetch: found,
+        onSnoozeChanged: (until) => persisted = until,
+      );
+      await controller.check();
+      controller.snooze();
+
+      expect(controller.isAvailable, isFalse);
+      expect(controller.isPopupPending, isFalse);
+      expect(controller.isSnoozed, isTrue);
+      expect(persisted, isNotNull);
+      // Thirty days, give or take the time the test took to run.
+      final days = persisted!.difference(DateTime.now()).inDays;
+      expect(days, inInclusiveRange(29, 30));
+
+      await controller.check();
+      expect(controller.isAvailable, isFalse,
+          reason: 'the automatic check must stay quiet while snoozed');
+    });
+
+    test('asking by hand answers even while snoozed', () async {
+      final controller = UpdateController(
+        currentVersion: '1.0.0',
+        snoozedUntil: DateTime.now().add(const Duration(days: 10)),
+        fetch: found,
+      );
+      await controller.check();
+      expect(controller.isAvailable, isFalse);
+
+      await controller.check(force: true);
+      expect(controller.isAvailable, isTrue);
+    });
+
+    test('updating by hand lifts a delay that was still running', () async {
+      DateTime? persisted;
+      final controller = UpdateController(
+        currentVersion: '1.0.0',
+        fetch: found,
+        downloader: fakeDownload,
+        onSnoozeChanged: (until) => persisted = until,
+      );
+      await controller.check();
+      controller.snooze();
+      expect(controller.isSnoozed, isTrue);
+
+      // Coming back through the settings and asking for the update.
+      await controller.check(force: true);
+      expect(await controller.download(), isTrue);
+
+      expect(controller.isSnoozed, isFalse);
+      expect(persisted, isNull, reason: 'the delay is cleared, not moved');
+    });
+
+    test('the download reports progress and ends ready', () async {
+      final controller = UpdateController(
+        currentVersion: '1.0.0',
+        fetch: found,
+        downloader: fakeDownload,
+      );
+      await controller.check();
+
+      expect(await controller.download(), isTrue);
+      expect(controller.stage, UpdateStage.ready);
+      expect(controller.progress, 1);
+      expect(controller.installerPath, isNotNull);
+    });
+
+    test('an expired delay lets the automatic check run again', () async {
+      final controller = UpdateController(
+        currentVersion: '1.0.0',
+        snoozedUntil: DateTime.now().subtract(const Duration(days: 1)),
+        fetch: found,
+      );
+      expect(controller.isSnoozed, isFalse);
+      await controller.check();
+      expect(controller.isAvailable, isTrue);
     });
   });
 }

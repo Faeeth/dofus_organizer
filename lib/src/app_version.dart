@@ -15,6 +15,9 @@ const String appVersion = String.fromEnvironment(
 /// Marker file shipped next to the executable in the portable archive.
 const String _portableMarker = 'portable.txt';
 
+/// Passed by the installer when it relaunches the organizer.
+const String updatedFlag = '--updated';
+
 /// Whether this build was extracted from the portable archive rather than
 /// installed.
 ///

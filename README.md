@@ -27,10 +27,26 @@ Le tool interroge les releases du dépôt une fois au lancement, et se tait dans
 tous les cas sauf un : une version publiée plus récente que la sienne. Pas de
 réseau, dépôt injoignable, réponse illisible, rien de neuf — rien n'est dit.
 
-Quand il y a mieux, un bouton apparaît dans l'en-tête. Une installation
-télécharge l'installateur et se met à jour toute seule. Une copie portable est
-renvoyée vers la page de la release : lancer l'installateur y poserait une
-seconde copie ailleurs et laisserait le dossier en arrière.
+Quand il y a mieux, une fenêtre l'annonce et un bouton reste dans l'en-tête.
+Si le tool a démarré réduit, l'annonce attend : elle s'affiche à l'ouverture
+de la fenêtre, pas dans le vide.
+
+- **Installer** télécharge l'installateur et met à jour tout seul. Une copie
+  portable est renvoyée vers la page de la release : lancer l'installateur y
+  poserait une seconde copie ailleurs et laisserait le dossier en arrière.
+- **Plus tard** ferme l'annonce ; le bouton de l'en-tête reste.
+- **Ignorer pendant 30 jours** fait taire la vérification automatique. Elle
+  reprend d'elle-même à l'échéance, et le délai saute dès qu'une mise à jour
+  est lancée à la main : il voulait dire « laisse-moi tranquille tant que je
+  ne demande rien ».
+
+Les paramètres redemandent au dépôt à chaque ouverture, même pendant un délai :
+c'est le chemin de retour pour qui a ignoré une version et change d'avis.
+
+Après une mise à jour, le tool se relance **fenêtre ouverte**, même si
+« démarrer réduit » est coché : le réglage vaut pour les lancements ordinaires,
+et après une mise à jour on veut voir que le tool est revenu. Le réglage n'est
+pas modifié pour autant.
 
 ## Fonctionnement
 

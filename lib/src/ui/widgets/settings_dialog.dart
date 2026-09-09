@@ -1,27 +1,58 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import '../../services/update_service.dart';
 import '../../state/organizer_controller.dart';
+import '../../state/update_controller.dart';
 import '../theme.dart';
+import 'update_dialog.dart';
 
 /// Application preferences.
-class SettingsDialog extends StatelessWidget {
-  const SettingsDialog({super.key, required this.controller});
+class SettingsDialog extends StatefulWidget {
+  const SettingsDialog({
+    super.key,
+    required this.controller,
+    required this.updates,
+    required this.onQuit,
+  });
 
   final OrganizerController controller;
+  final UpdateController updates;
+  final Future<void> Function() onQuit;
 
   static Future<void> show(
     BuildContext context, {
     required OrganizerController controller,
+    required UpdateController updates,
+    required Future<void> Function() onQuit,
   }) {
     return showDialog<void>(
       context: context,
-      builder: (context) => SettingsDialog(controller: controller),
+      builder: (context) => SettingsDialog(
+        controller: controller,
+        updates: updates,
+        onQuit: onQuit,
+      ),
     );
   }
 
   @override
+  State<SettingsDialog> createState() => _SettingsDialogState();
+}
+
+class _SettingsDialogState extends State<SettingsDialog> {
+  @override
+  void initState() {
+    super.initState();
+    // Asking by hand must answer even while the automatic check is postponed:
+    // that is the way back for someone who ignored an update and changed
+    // their mind.
+    unawaited(widget.updates.check(force: true));
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
@@ -29,7 +60,7 @@ class SettingsDialog extends StatelessWidget {
         return AlertDialog(
           title: const Text('Paramètres', style: TextStyle(fontSize: 17)),
           content: SizedBox(
-            width: 460,
+            width: 480,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,14 +88,15 @@ class SettingsDialog extends StatelessWidget {
                   value: settings.launchAtStartup,
                   onChanged: (value) => controller.setLaunchAtStartup(value),
                 ),
+                const Divider(height: 28),
+                UpdateFooter(
+                  controller: widget.updates,
+                  onQuit: widget.onQuit,
+                ),
               ],
             ),
           ),
-          // Le lien vers le projet tient a gauche, loin du bouton qui
-          // ferme : ce n'est pas une action de sortie.
-          actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
-            const _GithubLink(),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Fermer'),
@@ -115,44 +147,6 @@ class _SwitchRow extends StatelessWidget {
           const SizedBox(width: 16),
           Switch(value: value, onChanged: onChanged),
         ],
-      ),
-    );
-  }
-}
-
-/// Opens the project page. The mark is white, so it takes the tint given
-/// here and follows the interface rather than punching a hole in it.
-class _GithubLink extends StatefulWidget {
-  const _GithubLink();
-
-  @override
-  State<_GithubLink> createState() => _GithubLinkState();
-}
-
-class _GithubLinkState extends State<_GithubLink> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: 'Voir le projet sur GitHub',
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          onTap: () => openInBrowser(projectPage),
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Image.asset(
-              'assets/github.png',
-              width: 22,
-              height: 22,
-              color: _hovered ? AppColors.textPrimary : AppColors.textSecondary,
-              filterQuality: FilterQuality.medium,
-            ),
-          ),
-        ),
       ),
     );
   }

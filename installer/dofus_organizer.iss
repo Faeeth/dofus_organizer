@@ -85,4 +85,9 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 ; Sans `skipifsilent` : une mise a jour lancee depuis l'outil se fait en
 ; silence, et doit rendre l'outil a qui l'utilisait. Il l'avait ferme pour
 ; laisser la place a l'installateur, pas pour en finir avec lui.
-Filename: "{app}\{#Executable}"; Description: "{cm:LaunchProgram,{#Nom}}"; Flags: nowait postinstall
+;
+; `--updated` dit a l'outil qu'il sort d'une installation : il se montre, meme
+; si l'option « demarrer reduit » est cochee. Elle vaut pour les lancements
+; suivants, pas pour celui-la — apres une mise a jour, on veut voir que le
+; tool est revenu.
+Filename: "{app}\{#Executable}"; Parameters: "--updated"; Description: "{cm:LaunchProgram,{#Nom}}"; Flags: nowait postinstall

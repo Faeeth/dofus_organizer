@@ -235,6 +235,25 @@ void main() {
     loaded.dispose();
   });
 
+  test('the update delay survives a reload', () async {
+    final until = DateTime.now().add(const Duration(days: 30));
+    controller.setUpdateSnooze(until);
+    await controller.flush();
+
+    final reloaded = OrganizerController(
+      store: ConfigStore(directory: temporary),
+      native: _RecordingBridge(),
+    );
+    await reloaded.initialize();
+
+    expect(
+      reloaded.settings.updateSnoozeUntil?.millisecondsSinceEpoch,
+      until.millisecondsSinceEpoch,
+    );
+    await reloaded.flush();
+    reloaded.dispose();
+  });
+
   test('configuration survives a reload', () async {
     final team = controller.addGroup('Kaska');
     controller.addCharacter(team.id,

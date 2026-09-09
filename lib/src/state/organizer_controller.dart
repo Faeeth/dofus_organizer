@@ -220,6 +220,16 @@ class OrganizerController extends ChangeNotifier {
     ));
   }
 
+  /// Silences the update check until [until], or clears the delay when null.
+  void setUpdateSnooze(DateTime? until) {
+    _update(_config.copyWith(
+      settings: _config.settings.copyWith(
+        updateSnoozeUntil: until,
+        clearUpdateSnooze: until == null,
+      ),
+    ));
+  }
+
   Future<void> setLaunchAtStartup(bool value) async {
     final applied = await _native.setLaunchAtStartup(enabled: value);
     _update(_config.copyWith(

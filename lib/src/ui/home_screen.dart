@@ -146,8 +146,12 @@ class _Header extends StatelessWidget {
           Tooltip(
             message: 'Paramètres',
             child: IconButton(
-              onPressed: () =>
-                  SettingsDialog.show(context, controller: controller),
+              onPressed: () => SettingsDialog.show(
+                context,
+                controller: controller,
+                updates: updates,
+                onQuit: onQuit,
+              ),
               icon: const Icon(Icons.settings_outlined, size: 19),
               color: AppColors.textSecondary,
             ),

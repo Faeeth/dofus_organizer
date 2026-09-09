@@ -9,6 +9,7 @@ class AppSettings {
     this.closeToTray = true,
     this.startMinimized = false,
     this.launchAtStartup = false,
+    this.updateSnoozeUntil,
   });
 
   /// Closing the window sends the organizer to the notification area instead
@@ -23,31 +24,46 @@ class AppSettings {
   /// cached here for display.
   final bool launchAtStartup;
 
+  /// Until when the update check stays quiet, set by "ignore for 30 days".
+  /// Null when nothing was postponed.
+  final DateTime? updateSnoozeUntil;
+
   AppSettings copyWith({
     bool? closeToTray,
     bool? startMinimized,
     bool? launchAtStartup,
+    DateTime? updateSnoozeUntil,
+    bool clearUpdateSnooze = false,
   }) {
     return AppSettings(
       closeToTray: closeToTray ?? this.closeToTray,
       startMinimized: startMinimized ?? this.startMinimized,
       launchAtStartup: launchAtStartup ?? this.launchAtStartup,
+      updateSnoozeUntil: clearUpdateSnooze
+          ? null
+          : (updateSnoozeUntil ?? this.updateSnoozeUntil),
     );
   }
 
   Map<String, Object?> toJson() => {
         'closeToTray': closeToTray,
         'startMinimized': startMinimized,
+        if (updateSnoozeUntil != null)
+          'updateSnoozeUntil': updateSnoozeUntil!.millisecondsSinceEpoch,
       };
 
   static AppSettings fromJson(Object? json) {
     if (json is! Map) return const AppSettings();
+    final snooze = json['updateSnoozeUntil'];
     return AppSettings(
       closeToTray:
           json['closeToTray'] is bool ? json['closeToTray'] as bool : true,
       startMinimized: json['startMinimized'] is bool
           ? json['startMinimized'] as bool
           : false,
+      updateSnoozeUntil: snooze is int
+          ? DateTime.fromMillisecondsSinceEpoch(snooze)
+          : null,
     );
   }
 }

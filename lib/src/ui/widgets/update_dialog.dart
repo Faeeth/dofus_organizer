@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/update_service.dart';
 import '../../state/update_controller.dart';
 import '../theme.dart';
 
@@ -96,24 +97,53 @@ class UpdateDialog extends StatelessWidget {
                     style: TextStyle(color: AppColors.danger, fontSize: 12.5),
                   ),
                 ],
+                if (!downloading) ...[
+                  const SizedBox(height: 14),
+                  _LinkText(
+                    label: 'Voir les notes de version',
+                    onTap: controller.openReleasePage,
+                  ),
+                ],
               ],
             ),
           ),
+          actionsAlignment: MainAxisAlignment.spaceBetween,
           actions: [
+            // Ecarte des deux autres : celui-ci fait taire la verification,
+            // pas seulement cette fenetre.
             TextButton(
-              onPressed: downloading ? null : controller.openReleasePage,
-              child: const Text('Ouvrir la page'),
-            ),
-            TextButton(
-              onPressed:
-                  downloading ? null : () => Navigator.of(context).pop(),
-              child: const Text('Plus tard'),
-            ),
-            if (controller.canInstall && !failed)
-              FilledButton(
-                onPressed: downloading ? null : () => _install(context),
-                child: const Text('Installer'),
+              onPressed: downloading
+                  ? null
+                  : () {
+                      controller.snooze();
+                      Navigator.of(context).pop();
+                    },
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
               ),
+              child: const Text('Ignorer pendant 30 jours'),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed:
+                      downloading ? null : () => Navigator.of(context).pop(),
+                  child: const Text('Plus tard'),
+                ),
+                const SizedBox(width: 8),
+                if (controller.canInstall && !failed)
+                  FilledButton(
+                    onPressed: downloading ? null : () => _install(context),
+                    child: const Text('Installer'),
+                  )
+                else
+                  FilledButton(
+                    onPressed: downloading ? null : controller.openReleasePage,
+                    child: const Text('Ouvrir la page'),
+                  ),
+              ],
+            ),
           ],
         );
       },
@@ -158,6 +188,148 @@ class UpdateBadge extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Discreet textual link, for what is worth offering without a button.
+class _LinkText extends StatefulWidget {
+  const _LinkText({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  State<_LinkText> createState() => _LinkTextState();
+}
+
+class _LinkTextState extends State<_LinkText> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: Text(
+          widget.label,
+          style: TextStyle(
+            color: _hovered ? AppColors.accent : AppColors.textSecondary,
+            fontSize: 12,
+            decoration: TextDecoration.underline,
+            decorationColor:
+                _hovered ? AppColors.accent : AppColors.textDisabled,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Version line of the settings: the mark, the running version, and what is
+/// published when it is newer.
+class UpdateFooter extends StatelessWidget {
+  const UpdateFooter({
+    super.key,
+    required this.controller,
+    required this.onQuit,
+  });
+
+  final UpdateController controller;
+  final Future<void> Function() onQuit;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final update = controller.update;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const _GithubMark(),
+                const SizedBox(width: 10),
+                Text(
+                  controller.currentVersion,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.5,
+                  ),
+                ),
+              ],
+            ),
+            // A jour : la version seule suffit, il n'y a rien a proposer.
+            // La seconde ligne evite d'entasser le libelle et le bouton a
+            // cote de la version, qui deborde des que le numero s'allonge.
+            if (update != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Version ${update.version} disponible',
+                      style: const TextStyle(
+                        color: AppColors.accent,
+                        fontSize: 12.5,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton(
+                    onPressed: () => UpdateDialog.show(
+                      context,
+                      controller: controller,
+                      onQuit: onQuit,
+                    ),
+                    child: const Text('Mettre à jour'),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Opens the project page. The mark is white, so it takes the tint given here
+/// and follows the interface rather than punching a hole in it.
+class _GithubMark extends StatefulWidget {
+  const _GithubMark();
+
+  @override
+  State<_GithubMark> createState() => _GithubMarkState();
+}
+
+class _GithubMarkState extends State<_GithubMark> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Voir le projet sur GitHub',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          onTap: () => openInBrowser(projectPage),
+          child: Image.asset(
+            'assets/github.png',
+            width: 22,
+            height: 22,
+            color: _hovered ? AppColors.textPrimary : AppColors.textSecondary,
+            filterQuality: FilterQuality.medium,
+          ),
+        ),
+      ),
     );
   }
 }
