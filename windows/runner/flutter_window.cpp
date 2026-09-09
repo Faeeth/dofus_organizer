@@ -24,6 +24,14 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
 
+  // Windows replaces the command of the first ShowWindow call of a process by
+  // the one inherited from the launcher startup info: a shortcut set to start
+  // minimized, or the installer relaunching us, would otherwise decide how the
+  // first frame appears. That call is consumed here, before the engine exists
+  // and therefore before any frame can race it. The window is not visible yet,
+  // so this changes nothing on screen.
+  ::ShowWindow(GetHandle(), SW_HIDE);
+
   RECT frame = GetClientArea();
 
   // The size here must match the window dimensions to avoid unnecessary surface

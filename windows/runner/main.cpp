@@ -78,12 +78,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     return EXIT_FAILURE;
   }
   CenterOnWorkArea(window.GetHandle());
-  // Windows replaces the command of the first ShowWindow call of a process by
-  // the one inherited from the launcher startup info: a shortcut configured to
-  // start minimized would otherwise turn the first frame into a minimized
-  // window. Consuming that call here keeps the later show faithful; the window
-  // is not visible yet, so this changes nothing on screen.
-  ::ShowWindow(window.GetHandle(), SW_HIDE);
   // Dart intercepts the close request to hide the window instead; reaching
   // WM_DESTROY therefore means an explicit quit.
   window.SetQuitOnClose(true);
